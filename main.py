@@ -5,12 +5,37 @@ from pydantic import BaseModel
 import pickle
 import numpy as np
 import pandas as pd
+import os
+import urllib.request
+import gdown
 
 app = FastAPI(title="California Housing Price Predictor")
 
-# Load the trained model once at startup
+# Google Drive file ID from your link
+GDRIVE_FILE_ID = "14JaIAkUaNW6gfojcznkIA2H3mGB9RuNR"
+MODEL_FILE = "housing_model.pkl"
+
+# Download model from Google Drive if not exists
+def download_model_from_gdrive():
+    if not os.path.exists(MODEL_FILE):
+        print("⏳ Downloading model from Google Drive (this may take a minute)...")
+        try:
+            # Using gdown to download from Google Drive
+            url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
+            gdown.download(url, MODEL_FILE, quiet=False)
+            print("✓ Model downloaded successfully from Google Drive!")
+        except Exception as e:
+            print(f"❌ Error downloading model: {e}")
+            raise
+    else:
+        print("✓ Model file already exists locally")
+
+# Download model on startup
 print("Loading model...")
-with open("housing_model.pkl", "rb") as f:
+download_model_from_gdrive()
+
+# Load the trained model once at startup
+with open(MODEL_FILE, "rb") as f:
     model = pickle.load(f)
 print("✓ Model loaded successfully!")
 
