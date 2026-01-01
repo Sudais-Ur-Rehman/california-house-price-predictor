@@ -6,10 +6,6 @@ __pycache__/
 # Virtual environment
 fastapi-env/
 
-# Model files
-housing_model.pkl
-*.pkl
-
 # VS Code settings (optional)
 .vscode/
 
