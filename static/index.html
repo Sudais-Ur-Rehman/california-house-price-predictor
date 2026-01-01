@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>California Housing Price Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            display: none;
+            text-align: center;
+        }
+
+        .result-container.success {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            display: block;
+        }
+
+        .result-container.error {
+            background: #ffebee;
+            border: 2px solid #f44336;
+            display: block;
+        }
+
+        .result-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-price {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4caf50;
+            margin: 10px 0;
+        }
+
+        .result-container.error .result-price {
+            color: #f44336;
+            font-size: 16px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+            border-left: 4px solid #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .result-price {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Housing Price Predictor</h1>
+        <p class="subtitle">California Housing Market Analysis</p>
+
+        <div class="info-box">
+            <strong>ℹ️ How to use:</strong> Fill in the property details below and click "Predict Price" to estimate the median house value.
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="longitude">Longitude *</label>
+                    <input type="number" id="longitude" name="longitude" step="0.01" required placeholder="-124.35">
+                </div>
+                <div class="form-group">
+                    <label for="latitude">Latitude *</label>
+                    <input type="number" id="latitude" name="latitude" step="0.01" required placeholder="32.54">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="housingMedianAge">Housing Median Age (years) *</label>
+                    <input type="number" id="housingMedianAge" name="housingMedianAge" step="0.1" required placeholder="25">
+                </div>
+                <div class="form-group">
+                    <label for="medianIncome">Median Income (in tens of thousands) *</label>
+                    <input type="number" id="medianIncome" name="medianIncome" step="0.01" required placeholder="3.5">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="totalRooms">Total Rooms *</label>
+                    <input type="number" id="totalRooms" name="totalRooms" step="1" required placeholder="6000">
+                </div>
+                <div class="form-group">
+                    <label for="totalBedrooms">Total Bedrooms *</label>
+                    <input type="number" id="totalBedrooms" name="totalBedrooms" step="1" required placeholder="1500">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="population">Population *</label>
+                    <input type="number" id="population" name="population" step="1" required placeholder="1500">
+                </div>
+                <div class="form-group">
+                    <label for="households">Households *</label>
+                    <input type="number" id="households" name="households" step="1" required placeholder="500">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="oceanProximity">Ocean Proximity *</label>
+                <select id="oceanProximity" name="oceanProximity" required>
+                    <option value="">-- Select an option --</option>
+                    <option value="<1H OCEAN">&lt;1H OCEAN</option>
+                    <option value="INLAND">INLAND</option>
+                    <option value="ISLAND">ISLAND</option>
+                    <option value="NEAR OCEAN">NEAR OCEAN</option>
+                    <option value="NEAR BAY">NEAR BAY</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn">🔮 Predict Price</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">Making prediction...</p>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-price" id="resultPrice"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultPrice = document.getElementById('resultPrice');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Get form data
+            const formData = {
+                longitude: parseFloat(document.getElementById('longitude').value),
+                latitude: parseFloat(document.getElementById('latitude').value),
+                housingMedianAge: parseFloat(document.getElementById('housingMedianAge').value),
+                totalRooms: parseFloat(document.getElementById('totalRooms').value),
+                totalBedrooms: parseFloat(document.getElementById('totalBedrooms').value),
+                population: parseFloat(document.getElementById('population').value),
+                households: parseFloat(document.getElementById('households').value),
+                medianIncome: parseFloat(document.getElementById('medianIncome').value),
+                oceanProximity: document.getElementById('oceanProximity').value
+            };
+
+            // Show loading
+            loading.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                loading.style.display = 'none';
+
+                if (data.success) {
+                    resultContainer.className = 'result-container success';
+                    resultTitle.textContent = 'Predicted Median House Value';
+                    resultPrice.textContent = data.price_formatted;
+                    resultContainer.style.display = 'block';
+                } else {
+                    resultContainer.className = 'result-container error';
+                    resultTitle.textContent = 'Error';
+                    resultPrice.textContent = data.error || 'Something went wrong';
+                    resultContainer.style.display = 'block';
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                resultContainer.className = 'result-container error';
+                resultTitle.textContent = 'Error';
+                resultPrice.textContent = 'Failed to connect to server';
+                resultContainer.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
